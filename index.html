@@ -180,14 +180,31 @@ function parseSeq(s){
   }
   return out;
 }
-function mkSong(sd, lead, harm, bass, drums, vols){
-  return { sd, len:64,
+function mkSong(sd, lead, harm, bass, drums, vols, opts){
+  return { sd, len:64, echo:!!(opts&&opts.echo), vib:!(opts&&opts.vib===false),
     tracks: [
       {notes:parseSeq(lead), wave:'square',   vol:(vols&&vols[0])||0.082},
       {notes:parseSeq(harm), wave:'square',   vol:(vols&&vols[1])||0.05},
       {notes:parseSeq(bass), wave:'triangle', vol:(vols&&vols[2])||0.17}
     ],
     drums: drums.replace(/\s/g,'') };
+}
+// en not med valfritt vibrato (LFO på frekvensen — klassiskt NES-lead)
+function musNote(wave, midi, t, dur, vol, vib){
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = wave; o.frequency.value = freq(midi);
+  g.gain.setValueAtTime(vol, t);
+  g.gain.setValueAtTime(vol, t + Math.max(0.01, dur - 0.04));
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g); g.connect(musGain);
+  if(vib && dur > 0.16){
+    const lfo = actx.createOscillator(), lg = actx.createGain();
+    lfo.type = 'sine'; lfo.frequency.value = 5.6;
+    lg.gain.value = freq(midi)*0.007;
+    lfo.connect(lg); lg.connect(o.frequency);
+    lfo.start(t+0.07); lfo.stop(t + dur + 0.02);
+  }
+  o.start(t); o.stop(t + dur + 0.02);
 }
 const SONGS = {
 // Lobby — lekfull och hoppfull (C-dur)
@@ -205,21 +222,22 @@ lobby: mkSong(0.115,
   G2 . D3 . G2 . D3 . C3 . G2 . C3 . G2 .
   F2 . C3 . G2 . G2 . C3 . G2 . C3 . C3 .`,
  `K.h.S.h.K.h.S.h. K.h.S.h.K.h.S.h. K.h.S.h.K.h.S.h. K.h.S.h.K.h.S.ss`),
-// Bana 1: Gatan — drivande gallopp i A-moll (Castlevania-energi)
-lv1: mkSong(0.1,
- `A4 - - C5 E5 - - D5 C5 - D5 - E5 - - -
-  F5 - - E5 D5 - - C5 B4 - C5 - D5 - - -
-  A4 - - C5 E5 - - G5 A5 - G5 - E5 - D5 -
-  C5 - B4 - A4 - - - A4 - - - . . E4 G4`,
- `A3 - - - - - - - E3 - - - - - - -
-  F3 - - - - - - - G3 - - - - - - -
-  A3 - - - - - - - C4 - - - - - - -
-  G3 - - - - - - - E3 - - - - - - -`,
+// Bana 1: Gatan — gallopperande A-harmonisk moll med barockslingor (Castlevania-anda)
+lv1: mkSong(0.095,
+ `A4 - - E5 - - D5 C5 B4 C5 D5 C5 B4 A4 G#4 -
+  A4 - - C5 E5 - A5 - G#5 - E5 - F5 E5 D5 C5
+  D5 - F5 - A5 - G#5 A5 B5 A5 G#5 A5 E5 - C5 -
+  B4 C5 D5 E5 F5 E5 D5 C5 B4 - G#4 - A4 - - -`,
+ `A3 - - - - - - - E3 - - - G#3 - - -
+  A3 - - - - - - - E4 - - - - - - -
+  D4 - - - - - - - C4 - - - E4 - - -
+  E4 - - - - - - - E3 - G#3 - A3 - - -`,
  `A2 . A2 A2 A2 . A2 A2 A2 . A2 A2 A2 . A2 A2
-  F2 . F2 F2 F2 . F2 F2 F2 . F2 F2 G2 . G2 G2
-  A2 . A2 A2 A2 . A2 A2 A2 . A2 A2 A2 . A2 A2
-  G2 . G2 G2 G2 . G2 G2 E2 . E2 E2 E2 . E2 E2`,
- `K.h.S.h.h.K.S.h. K.h.S.h.h.K.S.h. K.h.S.h.h.K.S.h. K.h.S.h.K.h.S.ss`),
+  A2 . A2 A2 A2 . A2 A2 F2 . F2 F2 E2 . E2 E2
+  D2 . D2 D2 D2 . D2 D2 A2 . A2 A2 A2 . A2 A2
+  E2 . E2 E2 E2 . E2 E2 E2 . E2 E2 A2 . A2 A2`,
+ `K.h.S.h.h.K.S.h. K.h.S.h.h.K.S.h. K.h.S.h.h.K.S.h. K.h.S.h.K.k.S.ss`,
+ null, {echo:true}),
 // Bana 2: Kloakerna — mörk och slingrande (D-moll)
 lv2: mkSong(0.12,
  `D5 - - - F5 - E5 - D5 - - - A4 - - -
@@ -235,21 +253,22 @@ lv2: mkSong(0.12,
   D2 . . D2 . . D2 . Bb2 . . Bb2 . . Bb2 .
   C2 . . C2 . . C2 . A2 . . A2 . A2 . A2`,
  `K...h.S...h.K.h. K...h.S...h.K.h. K...h.S...h.K.h. K...h.S...s.s.s.`),
-// Bana 3: Fabriken — energiska arpeggion (Mega Man-driv, C-mixolydisk)
-lv3: mkSong(0.095,
- `C5 E5 G5 E5 Bb4 D5 F5 D5 C5 E5 G5 E5 C6 - Bb5 -
-  A5 - G5 - F5 - E5 - D5 F5 A5 F5 G5 - - -
-  C5 E5 G5 E5 Bb4 D5 F5 D5 A4 C5 E5 C5 F5 - E5 -
-  D5 - E5 - F5 G5 A5 Bb5 C6 - - - G5 - - -`,
- `. . C4 . . . C4 . . . C4 . . . Bb3 .
-  . . F3 . . . F3 . . . G3 . . . G3 .
-  . . C4 . . . C4 . . . F3 . . . F3 .
-  . . D4 . . . F4 . . . C4 . . . C4 .`,
- `C2 . C3 . C2 . C3 . Bb2 . Bb2 . Bb2 . Bb2 .
-  F2 . F2 . F2 . F2 . G2 . G2 . G2 . G2 .
-  C2 . C3 . C2 . C3 . F2 . F2 . F2 . F2 .
-  D2 . D2 . F2 . F2 . C2 . C2 . G2 . G2 .`,
- `K.h.S.h.K.h.S.hh K.h.S.h.K.h.S.hh K.h.S.h.K.h.S.hh K.h.S.h.K.s.S.ss`),
+// Bana 3: Fabriken — pumpande oktavbas + synkoperad hook (Mega Man-driv, E-moll)
+lv3: mkSong(0.088,
+ `E5 - G5 E5 B4 - E5 - D5 E5 G5 A5 B5 - A5 G5
+  E5 - G5 E5 B4 - E5 - C6 B5 A5 G5 F#5 - D5 -
+  G5 - - B5 A5 - - G5 F#5 G5 A5 F#5 D5 - B4 -
+  C5 D5 E5 - F#5 G5 A5 - B5 - A5 G5 F#5 - D#5 -`,
+ `. . E4 . . . E4 . . . G4 . . . G4 .
+  . . E4 . . . E4 . . . A4 . . . A4 .
+  . . C4 . . . C4 . . . D4 . . . D4 .
+  . . C4 . . . D4 . . . E4 . . . B3 .`,
+ `E2 E3 E2 E3 E2 E3 E2 E3 E2 E3 E2 E3 E2 E3 E2 E3
+  E2 E3 E2 E3 E2 E3 E2 E3 A2 A3 A2 A3 A2 A3 A2 A3
+  C2 C3 C2 C3 C2 C3 C2 C3 D2 D3 D2 D3 D2 D3 D2 D3
+  C2 C3 C2 C3 D2 D3 D2 D3 E2 E3 E2 E3 B2 B2 B2 B2`,
+ `K.h.S.hhK.h.S.h. K.h.S.hhK.h.S.h. K.h.S.hhK.h.S.h. K.h.S.h.K.s.Ssss`,
+ null, {echo:true}),
 // Bana 4: Taken — hjältemodigt äventyr (G-dur, Zelda-anda)
 lv4: mkSong(0.105,
  `G4 - B4 D5 G5 - - F#5 E5 - D5 - B4 - - -
@@ -265,12 +284,12 @@ lv4: mkSong(0.105,
   G2 . D3 . G2 . D3 . E2 . B2 . E2 . B2 .
   C3 . C3 . D3 . D3 . G2 . D3 . G2 . G2 .`,
  `K.h.K.h.S.h.K.h. K.h.K.h.S.h.K.h. K.h.K.h.S.h.K.h. K.h.K.h.S.h.S.ss`),
-// Bana 5: Slottet — barock orgelkänsla (E-moll, Castlevania-stämning)
-lv5: mkSong(0.11,
- `E5 - - - G5 - F#5 - E5 - - - B4 - - -
-  C5 - - - E5 - D5 - C5 - - - A4 - B4 -
-  A4 - - - C5 - B4 - A4 - E5 - C5 - B4 -
-  B4 - - - D#5 - F#5 - B5 - - - A5 - F#5 -`,
+// Bana 5: Slottet — barock orgelkänsla i E-harmonisk moll (Castlevania-stämning)
+lv5: mkSong(0.105,
+ `E5 - - - G5 F#5 G5 - E5 - - - B4 - D#5 -
+  C5 - - - E5 D5 E5 - C5 - A4 - B4 - D#5 -
+  A4 B4 C5 D5 E5 - B4 - C5 - A4 - B4 - G4 -
+  B4 - D#5 - F#5 - A5 - B5 A5 G5 F#5 E5 - D#5 -`,
  `E4 G4 B4 G4 E4 G4 B4 G4 E4 G4 B4 G4 E4 G4 B4 G4
   C4 E4 G4 E4 C4 E4 G4 E4 C4 E4 G4 E4 C4 E4 G4 E4
   A3 C4 E4 C4 A3 C4 E4 C4 A3 C4 E4 C4 A3 C4 E4 C4
@@ -280,9 +299,9 @@ lv5: mkSong(0.11,
   A2 . . . A3 . . . A2 . . . A3 . E3 .
   B2 . . . B2 . . . B2 . F#2 . B2 . B2 .`,
  `K...S...K...S..h K...S...K...S..h K...S...K...S..h K...S...K.k.S.ss`,
- [0.08, 0.055, 0.17]),
-// Bossstrid — frenetiskt riff i B-moll
-boss: mkSong(0.09,
+ [0.08, 0.055, 0.17], {echo:true}),
+// Bossstrid — frenetiskt riff i B-moll (Mega Man-bosstempo)
+boss: mkSong(0.085,
  `B3 B3 D4 B3 F#4 - E4 D4 B3 B3 D4 B3 G4 - F#4 D4
   B3 B3 D4 B3 F#4 - E4 D4 E4 F#4 G4 F#4 E4 D4 C#4 D4
   B4 - D5 - F#5 - - E5 D5 - B4 - G5 - F#5 -
@@ -296,9 +315,9 @@ boss: mkSong(0.09,
   B2 . B2 . B2 . B2 . G2 . G2 . G2 . G2 .
   E2 . E2 . E2 . E2 . F#2 . F#2 . F#2 . F#2 .`,
  `K.hkS.h.K.h.S.h. K.hkS.h.K.h.S.h. K.hkS.h.K.h.S.h. K.h.S.h.S.s.S.ss`,
- [0.09, 0.05, 0.18]),
+ [0.09, 0.05, 0.18], {echo:true}),
 // Slemkungen själv — tungt kromatiskt riff (A-moll)
-final: mkSong(0.088,
+final: mkSong(0.082,
  `A3 A3 C4 A3 Eb4 - D4 C4 A3 A3 C4 A3 E4 - Eb4 C4
   A3 A3 C4 A3 Eb4 - D4 C4 F4 E4 Eb4 D4 C4 B3 C4 D4
   A4 - C5 - Eb5 - D5 - E5 - G5 - A5 - - -
@@ -312,7 +331,7 @@ final: mkSong(0.088,
   A2 A2 . A2 A2 . A2 A2 A2 A2 . A2 A2 . A2 A2
   G2 G2 . G2 F2 . F2 F2 E2 E2 . E2 E2 . E2 E2`,
  `o.hkS.h.K.h.S.h. K.hkS.h.K.h.S.ss K.hkS.h.K.h.S.h. K.h.S.h.K.s.S.ss`,
- [0.09, 0.05, 0.19]),
+ [0.09, 0.05, 0.19], {echo:true}),
 // Segerfanfar (C-dur)
 win: mkSong(0.115,
  `C5 - C5 - C5 - E5 - G5 - - - E5 - G5 -
@@ -386,16 +405,15 @@ function updMusic(){
   const sg = MUS.song;
   while(MUS.next < actx.currentTime + 0.35){
     const i = MUS.step % sg.len, t = MUS.next;
-    for(const tr of sg.tracks){
+    for(let ti=0; ti<sg.tracks.length; ti++){
+      const tr = sg.tracks[ti];
       const nt = tr.notes[i];
       if(nt && nt.m>12){
-        const o = actx.createOscillator(), g = actx.createGain();
-        o.type = tr.wave; o.frequency.value = freq(nt.m);
         const dur = nt.d * sg.sd;
-        g.gain.setValueAtTime(tr.vol, t);
-        g.gain.setValueAtTime(tr.vol, t + Math.max(0.01, dur - 0.04));
-        g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-        o.connect(g); g.connect(musGain); o.start(t); o.stop(t + dur + 0.02);
+        musNote(tr.wave, nt.m, t, dur, tr.vol, ti===0 && sg.vib);
+        // eko-delay på leadstämman — klassiskt kvarts-eko
+        if(ti===0 && sg.echo)
+          musNote(tr.wave, nt.m, t + sg.sd*3, Math.min(dur, sg.sd*2.2), tr.vol*0.3, false);
       }
     }
     if(i < sg.drums.length) drumHit(sg.drums[i], t);
