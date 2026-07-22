@@ -405,25 +405,28 @@ function updMusic(){
 </script>
 <script>
 'use strict';
-// ===================== KARAKTÄRER =====================
+// ===================== HJÄLTAR =====================
+// OBS: `key` är det interna gameplay-kittet (rör ej — p4a branchar på det).
+// Namn, utseende och vapen är hjältens identitet. Alla designer är original
+// i klassisk JRPG-fantasystil.
 const CHARS = [
- {key:'blixt', name:'BLIXT', role:'Allround-hjälte', spName:'VIRVELSTORM', spDesc:'Träffar allt runt om',
-  hp:110, speed:175, dmg:[6,6,11], spDmg:16, color:'#ffd23c',
-  pal:{skin:'#f0c090', hair:'#3a66e0', shirt:'#ffd23c', pants:'#2a4ae0', shoe:'#26262e', belt:'#e04a2a', acc:'#ffffff'}},
- {key:'bull', name:'BULL', role:'Stark & tålig', spName:'MARKKROSS', spDesc:'Chockvåg fäller alla',
-  hp:150, speed:135, dmg:[9,9,16], spDmg:24, color:'#ff5a4e', big:true,
-  pal:{skin:'#e0a878', hair:'#7a3a1a', shirt:'#ff5a4e', pants:'#5a4632', shoe:'#33302a', belt:'#26262e', acc:'#ffd23c'}},
- {key:'skuggan', name:'SKUGGAN', role:'Snabb ninja', spName:'SKUGGDASH', spDesc:'Dash genom fienderna',
-  hp:90, speed:215, dmg:[5,5,9], spDmg:14, color:'#b06ae0',
-  pal:{skin:'#e8b8a0', hair:'#2a2038', shirt:'#5a3a8a', pants:'#2a2038', shoe:'#1a1428', belt:'#b06ae0', acc:'#e84a6a'}},
- {key:'rex', name:'RAKET-REX', role:'Robotnävar', spName:'RAKETNÄVE', spDesc:'Näven flyger över skärmen',
-  hp:115, speed:155, dmg:[7,7,12], spDmg:18, color:'#ff9a2a',
-  pal:{skin:'#c88a5a', hair:'#1a1a20', shirt:'#ff9a2a', pants:'#3a5a6a', shoe:'#26262e', belt:'#8a8a92', acc:'#5ae0e0'}},
- {key:'stella', name:'STELLA', role:'Support & helare', spName:'STJÄRNREGN', spDesc:'Helar laget + skadar', support:true,
-  hp:95, speed:180, dmg:[5,5,8], spDmg:10, ranged:true, color:'#ff8ad0',
-  pal:{skin:'#f4c8a8', hair:'#ffe89a', shirt:'#ff8ad0', pants:'#fff4f8', shoe:'#e05a9a', belt:'#ffd23c', acc:'#ffd23c'}}
+ {key:'blixt', name:'STORM', role:'Svärdsmästare', spName:'KLINGSTORM', spDesc:'Virvlande jättesvärd',
+  hp:110, speed:175, dmg:[6,6,11], spDmg:16, color:'#5a8ae0', weapon:'sword',
+  pal:{skin:'#f0c090', hair:'#7a4a2a', shirt:'#4a6a9a', pants:'#2a3a5a', shoe:'#26262e', belt:'#c8a03c', acc:'#c8d0da'}},
+ {key:'bull', name:'RAGNA', role:'Bärsärk', spName:'MARKKROSS', spDesc:'Chockvåg fäller alla',
+  hp:150, speed:135, dmg:[9,9,16], spDmg:24, color:'#ff5a4e', big:true, weapon:'gauntlet',
+  pal:{skin:'#e8b088', hair:'#c87a2a', shirt:'#8a4a2a', pants:'#4a3a2a', shoe:'#33302a', belt:'#26262e', acc:'#e8c83c'}},
+ {key:'skuggan', name:'ZEF', role:'Vindninja', spName:'SKUGGDASH', spDesc:'Dash genom fienderna',
+  hp:90, speed:215, dmg:[5,5,9], spDmg:14, color:'#5ae0b8', weapon:'daggers',
+  pal:{skin:'#e8b8a0', hair:'#2a3a4a', shirt:'#3a4a6a', pants:'#2a3040', shoe:'#1a2028', belt:'#5ae0b8', acc:'#5ae0b8'}},
+ {key:'rex', name:'KOGG', role:'Mekaniker', spName:'RAKETNÄVE', spDesc:'Näven flyger över skärmen',
+  hp:115, speed:155, dmg:[7,7,12], spDmg:18, color:'#ff9a2a', weapon:'cannon',
+  pal:{skin:'#c88a5a', hair:'#3a2a1a', shirt:'#c86a2a', pants:'#4a4a52', shoe:'#26262e', belt:'#8a8a92', acc:'#5ae0e0'}},
+ {key:'stella', name:'LUNA', role:'Månhelare', spName:'STJÄRNREGN', spDesc:'Helar laget + skadar', support:true, ranged:true,
+  hp:95, speed:180, dmg:[5,5,8], spDmg:10, color:'#b89aff', weapon:'staff',
+  pal:{skin:'#f4c8a8', hair:'#c8b8f0', shirt:'#e8e8f8', pants:'#b8a8e0', shoe:'#8a7ab8', belt:'#ffd23c', acc:'#ffd23c'}}
 ];
-const ALTPAL = ['#ffd23c','#ff5a4e','#b06ae0','#ff9a2a','#ff8ad0','#5ae0e0','#7ee84a'];
+const ALTPAL = ['#5a8ae0','#ff5a4e','#5ae0b8','#ff9a2a','#b89aff','#5ae0e0','#7ee84a'];
 
 // ===================== GRAFIKLÄGEN =====================
 // '3d'  = förrenderad look (mjuka volymer, gradienter, spegelglans)
@@ -526,8 +529,8 @@ function shadow(x,y,w){
   }
 }
 
-// ===================== HJÄLTE-SPRITES (procedurella, lägesmedvetna) =====================
-// o = {x,y,z,face,pose,t,walk,flash,ghost,tint}
+// ===================== HJÄLTE-SPRITES v3 (fantasyhjältar med vapen) =====================
+// o = {x,y,z,face,pose,t,walk,flash,ghost}
 function drawFighter(ch, o){
   const U = 3, P = ch.pal;
   const big = ch.big, TW = big?8:6, LH = 6, TH = big?7:6, HH = 5;
@@ -557,46 +560,90 @@ function drawFighter(ch, o){
     default: bob = Math.sin(t*3)*0.4; break;
   }
   ctx.rotate(rot);
+  const fl = c => o.flash?'#ffffff':c;
   const R = (x,y,w,h,c)=>FR(Math.round(x*U), Math.round(y*U), Math.round(w*U), Math.round(h*U), c);
   const FIST = big?3:2.5;
   const shY = -(LH+TH)+1;
+  const wpn = ch.weapon;
+  // vapen i näven (ritas efter näven i punch-läge)
+  const weaponInHand = (hx, hy)=>{
+    if(wpn==='sword'){
+      R(hx+FIST-0.4, hy+0.4, 8, 1.5, fl(P.acc));
+      FP([[(hx+FIST+7.6)*U,(hy+0.2)*U],[(hx+FIST+9.4)*U,(hy+1.15)*U],[(hx+FIST+7.6)*U,(hy+2.1)*U]], fl(P.acc));
+      R(hx+FIST-0.9, hy-0.5, 0.9, 3.2, fl(P.belt));
+    } else if(wpn==='daggers'){
+      R(hx+FIST-0.3, hy+0.6, 4.5, 1, fl('#c8d0da'));
+      FP([[(hx+FIST+4.2)*U,(hy+0.4)*U],[(hx+FIST+5.4)*U,(hy+1.1)*U],[(hx+FIST+4.2)*U,(hy+1.8)*U]], fl('#c8d0da'));
+    } else if(wpn==='staff'){
+      R(hx+FIST-0.6, hy-0.4, 1, 7, fl('#c89a5a'));
+      ctx.strokeStyle = fl(P.acc); ctx.lineWidth = 2.6;
+      ctx.beginPath(); ctx.arc((hx+FIST-0.1)*U, (hy-1.6)*U, 2.1*U, 0.7, 5.6); ctx.stroke();
+    }
+  };
   const arm = (front, mode, ext)=>{
     const sx = front? TW/2-1.5 : -TW/2-0.5;
-    const skin = o.flash?'#ffffff':P.skin, shirt = o.flash?'#ffffff':P.shirt;
-    const fist = ch.key==='rex' ? (o.flash?'#ffffff':P.belt) : skin;
+    const skin = fl(P.skin), shirt = fl(P.shirt);
+    const fist = (wpn==='cannon' && front) ? fl(P.belt) : (wpn==='gauntlet' ? fl(P.acc) : skin);
     if(mode==='punch'){
       const len = 2+5*ext;
       R(0, shY, len, 2, shirt); R(len, shY-0.5, FIST, FIST, fist);
-      if(ch.key==='rex') R(len, shY-0.5, FIST, 0.8, o.flash?'#ffffff':P.acc);
+      if(wpn==='cannon' && front) R(len, shY-0.5, FIST, 0.8, fl(P.acc));
+      if(wpn==='gauntlet'){ FP([[(len+FIST)*U,(shY-0.4)*U],[(len+FIST+1.2)*U,(shY+0.3)*U],[(len+FIST)*U,(shY+1)*U]], fl(P.acc)); }
+      if(front || o.pose==='atk2') weaponInHand(len, shY-0.5);
     } else if(mode==='up'){ R(sx, shY-5, 2, 5, shirt); R(sx-0.3, shY-7, FIST, FIST, fist); }
     else if(mode==='out'){ const d = front?1:-1; R(d>0?1:-6, shY, 5, 2, shirt); R(d>0?6:-8, shY-0.3, FIST, FIST, fist); }
     else if(mode==='guard'){ R(1, shY+0.5, 3, 2, shirt); R(3.5, shY, FIST, FIST, fist); }
     else if(mode==='swing'){ const e = ext*1.6; R(sx, shY+0.5, 2, 4.5, shirt); R(sx-0.3+e, shY+4, FIST, FIST, fist); }
     else { R(sx, shY+0.5, 2, 4.5, shirt); R(sx-0.3, shY+4.5, FIST, FIST, fist); }
   };
-  const skin = o.flash?'#ffffff':P.skin, shirt = o.flash?'#ffffff':P.shirt,
-        pants = o.flash?'#ffffff':P.pants, hair = o.flash?'#ffffff':P.hair;
+  const skin = fl(P.skin), shirt = fl(P.shirt), pants = fl(P.pants), hair = fl(P.hair);
+  // ---- bakre lager: svärd på ryggen / mantel / ryggsäck / halsduk ----
+  if(wpn==='sword' && armF!=='punch' && armB!=='punch' && o.pose!=='spin'){
+    ctx.save(); ctx.translate(-TW/2*U, (shY+1)*U); ctx.rotate(-0.85);
+    FR(-1.5, -14*U*0.32, 4, 13*U*0.32, fl(P.acc)); FR(-2.5, 1, 6, 2.5, fl(P.belt));
+    ctx.restore();
+  }
+  if(ch.key==='stella'){
+    FP([[(-TW/2-1)*U,(shY-0.5)*U],[(TW/2-1)*U,(shY-0.5)*U],[(TW/2-3)*U,(-2)*U],[(-TW/2-2.6)*U,(-2.5)*U]], fl('#d8d0f0'));
+  }
+  if(ch.key==='rex'){ R(-TW/2-1.6, shY+0.5, 1.8, 4.5, fl('#5a626a')); R(-TW/2-1.4, shY, 1.4, 0.8, fl('#8a8a92')); }
+  if(ch.key==='skuggan'){
+    for(let i=0;i<3;i++){
+      const sy2 = shY-0.6 + Math.sin(t*6+i*1.3)*0.5;
+      R(-TW/2-1.8-i*1.7, sy2+i*0.4, 2, 1.3, fl(P.acc));
+    }
+  }
+  if(ch.key==='bull'){
+    // fläta + pälsaxelskydd
+    R(-TW/2-0.6, shY-3.5, 1.4, 6, hair); R(-TW/2-0.4, shY+2.4, 1, 1.4, fl(P.belt));
+    FE((-TW/2+0.5)*U, (shY-0.6)*U, 2.4*U, 1.6*U, fl('#b8935a'));
+  }
   // bakre arm
   arm(false, armB, extB);
   // ben
   const legY = -LH+bob*0.3;
   if(tuck){
-    if(kick){ R(-1, legY+1, 7, 2, pants); R(6, legY+0.5, 3, 2.5, o.flash?'#ffffff':P.shoe); R(-2, legY+2, 3, 3, pants); }
-    else { R(-2.5, legY+1.5, 3, 3.5, pants); R(0.5, legY+1.5, 3, 3.5, pants); R(-2.5, legY+4.5, 3, 1.5, o.flash?'#ffffff':P.shoe); R(0.5, legY+4.5, 3, 1.5, o.flash?'#ffffff':P.shoe); }
+    if(kick){ R(-1, legY+1, 7, 2, pants); R(6, legY+0.5, 3, 2.5, fl(P.shoe)); R(-2, legY+2, 3, 3, pants); }
+    else { R(-2.5, legY+1.5, 3, 3.5, pants); R(0.5, legY+1.5, 3, 3.5, pants); R(-2.5, legY+4.5, 3, 1.5, fl(P.shoe)); R(0.5, legY+4.5, 3, 1.5, fl(P.shoe)); }
   } else {
     R(-2.5-lx*0.5, legY, 2.5, LH, pants); R(0.5+lx*0.5, legY, 2.5, LH, pants);
-    R(-3-lx, -1.5, 3.5, 1.5, o.flash?'#ffffff':P.shoe); R(0.5+lx, -1.5, 3.5, 1.5, o.flash?'#ffffff':P.shoe);
+    R(-3-lx, -1.5, 3.5, 1.5, fl(P.shoe)); R(0.5+lx, -1.5, 3.5, 1.5, fl(P.shoe));
+  }
+  // Lunas kjol över benens topp
+  if(ch.key==='stella' && !tuck){
+    FP([[(-TW/2)*U,(-LH-0.5+bob)*U],[(TW/2)*U,(-LH-0.5+bob)*U],[(TW/2+1)*U,(-LH+3)*U],[(-TW/2-1)*U,(-LH+3)*U]], shirt);
   }
   // kropp
   R(-TW/2, -(LH+TH)+bob, TW, TH, shirt);
-  R(-TW/2, -LH-1+bob, TW, 1.2, o.flash?'#ffffff':P.belt);
-  if(ch.key==='blixt'){ R(-0.5, shY+1, 1.5, 1.5, o.flash?'#ffffff':P.acc); R(0.5, shY+2.5, 1.5, 1.5, o.flash?'#ffffff':P.acc); }
-  if(ch.key==='bull'){ R(-TW/2, shY, 1.5, TH-1, skin); R(TW/2-1.5, shY, 1.5, TH-1, skin); }
-  if(ch.key==='stella'){ R(-TW/2-0.5, -LH-0.5+bob, TW+1, 2, o.flash?'#ffffff':P.shirt); }
+  R(-TW/2, -LH-1+bob, TW, 1.2, fl(P.belt));
+  if(ch.key==='blixt'){ R(-TW/2, shY+0.5, TW, 1, fl(P.acc)); R(TW/2-2.2, shY-0.6, 2.6, 2, fl(P.acc)); }
+  if(ch.key==='bull'){ R(-TW/2, shY, 1.5, TH-1, skin); R(TW/2-1.5, shY, 1.5, TH-1, skin); R(-1, shY+1, 2, 3.5, fl(P.acc)); }
+  if(ch.key==='skuggan'){ R(-TW/2, shY+2, TW, 1, fl(P.belt)); }
+  if(ch.key==='rex'){ R(-1.5, shY+1, 3, 3, fl('#8a8a92')); R(-0.9, shY+1.6, 1.8, 1.8, fl(P.acc)); }
   // huvud
   const hy = -(LH+TH+HH)+bob;
   R(-2.5, hy, 5, HH, skin);
-  // ansikte: öga med kontur, ögonbryn och mun
+  // ansikte
   ctx.fillStyle = GFX==='32' ? colShift(skin,-70) : 'rgba(20,16,24,0.35)';
   ctx.fillRect(Math.round(0.8*U), Math.round((hy+1.7)*U), Math.round(1.6*U), Math.round(1.6*U));
   ctx.fillStyle = '#ffffff';
@@ -605,24 +652,43 @@ function drawFighter(ch, o){
   ctx.fillRect(Math.round(1.6*U), Math.round((hy+2.3)*U), Math.round(0.7*U), Math.round(0.7*U));
   ctx.fillStyle = colShift(skin,-46);
   ctx.fillRect(Math.round(0.9*U), Math.round((hy+1.2)*U), Math.round(1.5*U), Math.round(0.45*U));
-  ctx.fillStyle = colShift(skin,-52);
-  ctx.fillRect(Math.round(1.1*U), Math.round((hy+3.9)*U), Math.round(1.1*U), Math.round(0.5*U));
-  // frisyr per karaktär
-  if(ch.key==='blixt'){ R(-2.5, hy-1, 5, 2, hair); R(-3, hy-2.2, 1.5, 1.8, hair); R(-1, hy-2.6, 1.5, 2, hair); R(1, hy-2.2, 1.5, 1.8, hair); }
-  else if(ch.key==='bull'){ R(-2.5, hy, 5, 1, skin); R(-1, hy-1.6, 2, 2, hair); R(-2.5, hy+3.4, 4, 1.6, hair); }
-  else if(ch.key==='skuggan'){ R(-3, hy-1, 6, 2.4, hair); R(-3, hy-1, 1.2, HH+1, hair); R(-2.5, hy+3.2, 5, 1.8, hair); R(-5.5, hy+2, 3, 1.5, o.flash?'#ffffff':P.acc); }
-  else if(ch.key==='rex'){ R(-2.5, hy-1, 5, 1.6, hair); R(-3.5, hy-1, 2, 1.2, hair); }
-  else if(ch.key==='stella'){ R(-2.5, hy-1.2, 5, 2, hair); R(-3.6, hy-0.5, 1.5, 4.5, hair); R(-4.2, hy+3, 1.5, 3, hair); R(0.2, hy-2.2, 1.6, 1.6, o.flash?'#ffffff':P.acc); }
+  if(ch.key==='skuggan'){
+    // ansiktsmask
+    R(-0.5, hy+3.1, 3.2, 1.6, fl(P.pants));
+  } else {
+    ctx.fillStyle = colShift(skin,-52);
+    ctx.fillRect(Math.round(1.1*U), Math.round((hy+3.9)*U), Math.round(1.1*U), Math.round(0.5*U));
+  }
+  if(ch.key==='bull'){ R(0.4, hy+3.1, 2.2, 0.5, fl('#c83a2a')); R(0.2, hy+1, 0.5, 2, fl('#c83a2a')); }
+  // frisyrer & huvudbonader
+  if(ch.key==='blixt'){ R(-2.5, hy-1, 5, 2, hair); R(-3.2, hy-2, 1.6, 2, hair); R(-1.2, hy-2.8, 1.7, 2.4, hair); R(0.8, hy-2.2, 1.6, 2, hair); R(-3, hy, 1, 3, hair); }
+  else if(ch.key==='bull'){ R(-2.5, hy-1, 5, 1.6, hair); R(-3, hy-0.4, 1.2, 3, hair); R(1.6, hy-0.6, 1.2, 2, hair); }
+  else if(ch.key==='skuggan'){ R(-3, hy-1, 6, 2.4, hair); R(-3, hy-1, 1.2, HH+1, hair); R(-2.5, hy-1.6, 5, 1, fl(P.acc)); }
+  else if(ch.key==='rex'){ R(-2.5, hy-1, 5, 1.6, hair);
+    R(-2.7, hy+0.2, 5.4, 1, fl('#3a3a44'));
+    FE(-0.8*U, (hy+0.7)*U, 1.4, 1.4, fl(P.acc)); FE(1.4*U, (hy+0.7)*U, 1.4, 1.4, fl(P.acc)); }
+  else if(ch.key==='stella'){ R(-2.5, hy-1.2, 5, 2, hair);
+    FE(-2.6*U, (hy+0.2)*U, 1.9*U*0.42, 1.9*U*0.42, hair);
+    R(0.6, hy-2.4, 1.6, 1.6, fl(P.acc)); R(-3.6, hy+0.6, 1.2, 3.6, hair); }
   // hårglans
   if(!o.flash){
     ctx.fillStyle = colShift(P.hair, 44);
     ctx.fillRect(Math.round(-1.8*U), Math.round((hy-0.7)*U), Math.round(2.2*U), Math.round(0.5*U));
   }
-  // främre arm
+  // främre arm (+ vapen)
   arm(true, armF, extF);
-  // Stellas trollstav i cast-pose
-  if(ch.key==='stella' && (armF==='up'||o.pose==='cast')){
-    R(4, shY-9, 1, 6, '#c89a5a'); R(3, shY-11, 3, 3, o.flash?'#ffffff':P.acc);
+  // svepglans vid hugg
+  if((o.pose==='atk1'||o.pose==='atk2'||o.pose==='atk3') && t<0.13 && (wpn==='sword'||wpn==='daggers')){
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(2*U, shY*U, (wpn==='sword'?11:8)*U*0.4+8, -0.9, 0.9); ctx.stroke();
+  }
+  // Lunas stav i vilo-/cast-poser
+  if(ch.key==='stella' && armF!=='punch'){
+    const rx2 = (o.pose==='cast'||armF==='up') ? 3.4 : 4;
+    const ry2 = (o.pose==='cast'||armF==='up') ? shY-8.5 : shY-4;
+    R(rx2, ry2, 1, 8, fl('#c89a5a'));
+    ctx.strokeStyle = fl(P.acc); ctx.lineWidth = 2.6;
+    ctx.beginPath(); ctx.arc((rx2+0.5)*U, (ry2-1.4)*U, 2*U, 0.7, 5.6); ctx.stroke();
   }
   ctx.restore();
 }
@@ -632,20 +698,19 @@ function drawPortrait(ch, x, y, s){
   ctx.fillStyle = P.skin; ctx.fillRect(-6,-5,12,12);
   ctx.fillStyle = '#fff'; ctx.fillRect(1,0,3,3); ctx.fillStyle = '#1a1a20'; ctx.fillRect(2.4,1,1.6,1.6);
   ctx.fillStyle = P.hair;
-  if(ch.key==='blixt'){ ctx.fillRect(-6,-7,12,4); ctx.fillRect(-7,-9,3,4); ctx.fillRect(-2,-10,3,5); ctx.fillRect(3,-9,3,4); }
-  else if(ch.key==='bull'){ ctx.fillRect(-2,-8,4,4); ctx.fillRect(-6,4,10,3); }
-  else if(ch.key==='skuggan'){ ctx.fillRect(-7,-7,14,5); ctx.fillRect(-7,-7,3,14); ctx.fillRect(-6,5,12,3); }
-  else if(ch.key==='rex'){ ctx.fillRect(-6,-7,12,3); ctx.fillRect(-8,-7,4,2); }
-  else if(ch.key==='stella'){ ctx.fillRect(-6,-8,12,4); ctx.fillRect(-9,-6,4,12); ctx.fillStyle=P.acc; ctx.fillRect(1,-9,4,4); }
+  if(ch.key==='blixt'){ ctx.fillRect(-6,-7,12,4); ctx.fillRect(-8,-8,4,4); ctx.fillRect(-3,-10,4,5); ctx.fillRect(2,-9,4,4); ctx.fillRect(-7,-4,2,7); }
+  else if(ch.key==='bull'){ ctx.fillRect(-6,-8,12,4); ctx.fillRect(-8,-5,3,10); ctx.fillStyle='#c83a2a'; ctx.fillRect(-1,-2,1.4,5); }
+  else if(ch.key==='skuggan'){ ctx.fillRect(-7,-7,14,5); ctx.fillRect(-7,-7,3,14); ctx.fillStyle=P.acc; ctx.fillRect(-6,-4,12,2); ctx.fillStyle=P.pants; ctx.fillRect(-2,4,8,3.4); }
+  else if(ch.key==='rex'){ ctx.fillRect(-6,-7,12,3); ctx.fillStyle='#3a3a44'; ctx.fillRect(-6.5,-5,13,2.6); ctx.fillStyle=P.acc; ctx.fillRect(-3,-5,3,3); ctx.fillRect(2,-5,3,3); }
+  else if(ch.key==='stella'){ ctx.fillRect(-6,-8,12,4); ctx.beginPath(); ctx.arc(-7,-2,3.4,0,7); ctx.fill(); ctx.fillStyle=P.acc; ctx.fillRect(2,-10,4,4); }
   ctx.restore();
 }
 
-// ===================== FIENDE-SPRITES =====================
+// ===================== SLEM (bossar & bosskärnor) =====================
 function slimeBody(x,y,w,h,color,dark,squish,face){
   const sw = w*(1+squish*0.25), sh = h*(1-squish*0.3);
   const flat = typeof color!=='string' || color[0]!=='#';
   if(GFX==='3d' && !flat){
-    // gelé-look: mörk botten, radiell volym + blank spegling
     ctx.fillStyle = 'rgba(0,0,0,0.18)';
     ctx.beginPath(); ctx.ellipse(x, y-sh*0.16, sw*0.52, sh*0.2, 0, 0, 7); ctx.fill();
     const g = ctx.createRadialGradient(x-sw*0.2, y-sh*0.75, sh*0.08, x, y-sh/2, Math.max(sw,sh)*0.75);
@@ -657,7 +722,6 @@ function slimeBody(x,y,w,h,color,dark,squish,face){
     ctx.fillStyle = 'rgba(255,255,255,0.25)';
     ctx.beginPath(); ctx.ellipse(x+sw*0.12, y-sh*0.8, sw*0.07, sh*0.05, -0.4, 0, 7); ctx.fill();
   } else {
-    // 32-bit: kontur + posteriserade band + glansfläck
     ctx.fillStyle = flat? dark : colShift(dark,-30);
     ctx.beginPath(); ctx.ellipse(x, y-sh/2, sw/2+1.8, sh/2+1.8, 0, 0, 7); ctx.fill();
     ctx.fillStyle = dark;
@@ -671,7 +735,6 @@ function slimeBody(x,y,w,h,color,dark,squish,face){
       ctx.beginPath(); ctx.ellipse(x-sw*0.18, y-sh*0.72, sw*0.1, sh*0.07, -0.5, 0, 7); ctx.fill();
     }
   }
-  // ögon med kontur
   const ex = x + face*sw*0.16, ey = y-sh*0.55;
   ctx.fillStyle = 'rgba(16,12,20,0.55)';
   ctx.beginPath(); ctx.ellipse(ex-4, ey, 3.9, 4.3, 0, 0, 7); ctx.fill();
@@ -687,49 +750,153 @@ function slimeBody(x,y,w,h,color,dark,squish,face){
     ctx.fillRect(ex-4+face*1.2, ey-1.4, 1.1, 1.1); ctx.fillRect(ex+4+face*1.2, ey-1.4, 1.1, 1.1);
   }
 }
+
+// ===================== FIENDER: SLEMLIGANS LIGISTER =====================
+// Humanoida hantlangare i klassisk beat 'em up-anda — alla är originaldesigner.
+const HENCH = {
+ grunt:  {uni:'#3a7a6a', pants:'#2a5a4e', skin:'#d8b090', head:'mask', maskC:'#2a5a4e', emblem:'#7ee84a'},
+ snabb:  {uni:'#8a2a34', pants:'#3a3a44', skin:'#e8c098', head:'mohawk', hawk:'#ffd23c', item:'bat'},
+ kastare:{uni:'#3a3a56', pants:'#2a2a40', skin:'#d8b090', head:'mask', maskC:'#1a1a2e', emblem:'#8a5ae0', item:'shuriken'},
+ skold:  {uni:'#5a6a7a', pants:'#3a4450', skin:'#d8b090', head:'helm', item:'riot'},
+ fet:    {uni:'#7a3a8a', pants:'#3a3040', skin:'#e0a878', head:'bald', big:true}
+};
+function drawHench(e, sx, sy, flash, wind){
+  const cfg = HENCH[e.kind];
+  const f = e.face;
+  const fl2 = c => flash?'#ffffff':(wind? colShift(c,50):c);
+  const uni = fl2(cfg.uni), pants2 = fl2(cfg.pants), skin2 = fl2(cfg.skin);
+  const walkP = Math.sin(e.bph||0);
+  const lx = e.state==='chase' ? Math.round(walkP*2.4) : 0;
+  const attacking = e.state==='atk', winding = e.state==='windup';
+  ctx.save();
+  ctx.translate(sx, sy);
+  ctx.scale(f, 1);
+  if(cfg.big) ctx.scale(1.35, 1.35);
+  // ben + skor
+  FR(-8-lx, -14, 7, 14, pants2); FR(1+lx, -14, 7, 14, pants2);
+  FR(-9-lx, -4, 9, 4, fl2('#26262e')); FR(1+lx, -4, 9, 4, fl2('#26262e'));
+  // bakre arm
+  if(winding){ FR(-9, -38, 5, 10, uni); FR(-10, -44, 6, 7, skin2);
+    if(cfg.item==='shuriken'){ drawShuriken(-7, -47, 5, flash); }
+  } else FR(-10, -28, 5, 11, uni);
+  // torso
+  FR(-9, -30, 18, 17, uni);
+  FR(-9, -16, 18, 3, fl2('#26262e'));
+  if(cfg.emblem){ FE(3, -24, 3.2, 3.2, fl2(cfg.emblem)); }
+  if(cfg.big){ FR(-9, -30, 4, 14, skin2); FR(5, -30, 4, 14, skin2); }
+  // främre arm (+ tillhygge)
+  if(attacking){
+    FR(2, -28, 12, 5, uni); FR(12, -29, 7, 7, skin2);
+    if(cfg.item==='bat'){ FR(17, -31, 14, 4, fl2('#a8845a')); }
+    if(cfg.item==='shuriken'){ /* kastad — projektilen syns i luften */ }
+  } else if(winding){
+    FR(4, -38, 5, 10, uni); FR(3, -45, 7, 7, skin2);
+    if(cfg.item==='bat'){ ctx.save(); ctx.translate(6,-44); ctx.rotate(-1.1); FR(0, -14, 4, 14, fl2('#a8845a')); ctx.restore(); }
+  } else {
+    FR(5, -28, 5, 11, uni);
+    if(cfg.item==='bat'){ FR(8, -22, 3, 12, fl2('#a8845a')); }
+  }
+  // huvud
+  FR(-6, -42, 12, 12, skin2);
+  if(cfg.head==='mask'){
+    FR(-6, -42, 12, 5, fl2(cfg.maskC));
+    FR(-6, -34, 12, 4, fl2(cfg.maskC));
+    // ögonspringa
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, -37.5, 3.4, 2.6);
+    ctx.fillStyle = '#1a1a20'; ctx.fillRect(1.8, -37, 1.8, 1.8);
+    // bandände
+    FR(-9, -40, 3, 2, fl2(cfg.maskC));
+  } else if(cfg.head==='mohawk'){
+    for(let i=0;i<4;i++) FP([[-5+i*3,-42],[-3.6+i*3,-49-(i%2)*2],[-2.2+i*3,-42]], fl2(cfg.hawk));
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0.5, -38, 3, 2.6);
+    ctx.fillStyle = '#1a1a20'; ctx.fillRect(2.2, -37.5, 1.6, 1.6);
+    ctx.fillStyle = colShift(cfg.skin,-52); ctx.fillRect(1, -32.6, 3, 1.2);
+  } else if(cfg.head==='helm'){
+    FR(-7, -44, 14, 8, fl2('#4a5560'));
+    FR(-6, -38, 12, 4, fl2('#8ac8e8'));
+    FR(-7, -33.6, 14, 2, fl2('#4a5560'));
+  } else {
+    // flintis med solglasögon (bjässen)
+    FR(-6, -38.5, 12, 3, fl2('#1a1a20'));
+    ctx.fillStyle = colShift(cfg.skin,-52); ctx.fillRect(0.6, -32.8, 3.4, 1.4);
+    FR(-6, -30.8, 12, 1.6, fl2('#3a2a1a'));
+  }
+  ctx.restore();
+}
+function drawShuriken(x, y, r, flash){
+  ctx.save(); ctx.translate(x, y); ctx.rotate((time||0)*10);
+  const c = flash?'#ffffff':'#aab2ba';
+  FP([[-r,0],[0,-r*0.35],[r,0],[0,r*0.35]], c);
+  FP([[0,-r],[r*0.35,0],[0,r],[-r*0.35,0]], c);
+  ctx.fillStyle = '#3a3a44'; ctx.beginPath(); ctx.arc(0,0,r*0.25,0,7); ctx.fill();
+  ctx.restore();
+}
+function drawDrone(e, sx, sy, flash, wind){
+  const body = flash?'#ffffff':'#6a7282', dark = flash?'#dddddd':'#4a525c';
+  const tilt = e.state==='atk' ? 0.4*Math.sign(e.swoopVx||1)*e.face : 0;
+  ctx.save(); ctx.translate(sx, sy); ctx.rotate(tilt);
+  // rotor (suddig)
+  ctx.fillStyle = 'rgba(200,210,220,0.4)';
+  ctx.beginPath(); ctx.ellipse(0, -26, 20, 2.6, 0, 0, 7); ctx.fill();
+  FR(-1.5, -26, 3, 5, dark);
+  FE(0, -14, 13, 10, body);
+  FR(-13, -15, 26, 3, dark);
+  // öga
+  ctx.fillStyle = e.state==='windup'||wind ? '#ff4a3a' : '#5ae0e0';
+  ctx.beginPath(); ctx.arc(e.face*5, -14, 3.6, 0, 7); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillRect(e.face*5-1, -16.4, 1.6, 1.6);
+  // gripklor
+  FR(-8, -5, 3, 5, dark); FR(5, -5, 3, 5, dark);
+  ctx.restore();
+}
+function drawBombot(e, sx, sy, flash){
+  const arm = e.fuse!==undefined;
+  const bl = arm && Math.floor(e.t*(4+ (1.6-e.fuse)*8))%2===0;
+  const body = flash?'#ffffff':(bl?'#ff5a3a':'#4a4a52');
+  // små ben
+  FR(sx-8, sy-6, 4, 6, flash?'#dddddd':'#2a2a32'); FR(sx+4, sy-6, 4, 6, flash?'#dddddd':'#2a2a32');
+  FE(sx, sy-16, 12, 11, body);
+  FR(sx-7, sy-19, 6, 4, flash?'#dddddd':'#2a2a32');
+  // öga
+  ctx.fillStyle = bl?'#fff':'#ffd23c';
+  ctx.beginPath(); ctx.arc(sx+e.face*4, sy-17, 3, 0, 7); ctx.fill();
+  // stubintråd
+  ctx.strokeStyle = '#c89a5a'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(sx, sy-27); ctx.quadraticCurveTo(sx+4, sy-32, sx+2, sy-35); ctx.stroke();
+  if(arm){ ctx.fillStyle = pick(['#ffd23c','#ff9a2a','#fff']); ctx.fillRect(sx+1, sy-38, 3, 3); }
+}
 function drawEnemy(e){
   const d = ETYPES[e.kind], sx = e.x-camX, sy = e.y - e.z;
   const flash = e.flashT>0 && (Math.floor(e.flashT*30)%2===0);
-  const col = flash?'#ffffff':d.color, dark = flash?'#dddddd':d.dark;
-  const sq = e.state==='hurt'?0.35 : Math.sin((e.bph||0))*0.12;
   shadow(sx, e.y, d.big?26:14);
   ctx.save();
   if(e.state==='down'){ ctx.translate(sx,sy); ctx.rotate(1.3); ctx.translate(-sx,-sy); }
   const wind = e.state==='windup' && Math.floor(e.t*14)%2===0;
-  if(e.kind==='flyg'){
-    const flap = Math.sin(e.t*18)*6;
-    FP([[sx-6,sy-10],[sx-20,sy-14-flap],[sx-8,sy-4]], wind?'#ffffff':dark);
-    FP([[sx+6,sy-10],[sx+20,sy-14-flap],[sx+8,sy-4]], wind?'#ffffff':dark);
-    slimeBody(sx, sy, 20, 16, wind?'#ffffff':col, dark, sq, e.face);
-  } else if(e.kind==='robot'){
+  if(e.kind==='flyg') drawDrone(e, sx, sy, flash, wind);
+  else if(e.kind==='bomb') drawBombot(e, sx, sy, flash);
+  else if(e.kind==='robot'){
     FR(sx-10, sy-8, 20, 8, wind?'#ffffff':'#5a626a');
-    FR(sx-9, sy-26, 18, 18, wind?'#eeeeee':col);
+    FR(sx-9, sy-26, 18, 18, wind?'#eeeeee':(flash?'#ffffff':d.color));
     FR(sx-7, sy-23, 14, 5, '#2a3038');
     ctx.fillStyle = e.state==='windup'?'#ff4a3a':'#5ae0e0';
     ctx.fillRect(sx-6+(Math.sin(e.t*6)*4+4), sy-22, 3, 3);
     FR(sx+e.face*9, sy-19, e.face*8, 5, '#5a626a');
     FR(sx-1, sy-30, 2, 5, '#5a626a'); FR(sx-1.5, sy-32, 3, 3, '#ff4a3a');
-  } else if(e.kind==='skold'){
-    slimeBody(sx, sy, 30, 26, col, dark, sq, e.face);
-    FR(sx+e.face*8, sy-24, e.face*7, 24, '#6a727a');
-    FR(sx+e.face*9, sy-22, e.face*5, 20, '#8a929a');
-    FR(sx+e.face*10, sy-18, e.face*3, 4, '#aab2ba');
-  } else if(e.kind==='bomb'){
-    const arm = e.fuse!==undefined;
-    const bl = arm && Math.floor(e.t*(4+ (1.6-e.fuse)*8))%2===0;
-    slimeBody(sx, sy, 26, 22, bl?'#ff5a3a':col, dark, sq, e.face);
-    ctx.strokeStyle = '#c89a5a'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(sx, sy-19); ctx.quadraticCurveTo(sx+4, sy-24, sx+2, sy-27); ctx.stroke();
-    if(arm){ ctx.fillStyle = pick(['#ffd23c','#ff9a2a','#fff']); ctx.fillRect(sx+1, sy-30, 3, 3); }
-  } else if(e.kind==='fet'){
-    slimeBody(sx, sy, 46, 36, col, dark, sq, e.face);
-    for(let i=0;i<4;i++) FP([[sx-16+i*10,sy-30],[sx-11+i*10,sy-40],[sx-6+i*10,sy-30]], dark);
-  } else if(e.kind==='kastare'){
-    slimeBody(sx, sy, 28, 23, col, dark, sq, e.face);
-    if(e.state==='windup') FE(sx+e.face*10, sy-22, 5, 5, col);
-  } else {
-    slimeBody(sx, sy, e.kind==='snabb'?22:28, e.kind==='snabb'?17:24, col, dark, sq, e.face);
-    if(e.kind==='snabb'){ ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fillRect(sx-e.face*14, sy-10, e.face*6, 2); ctx.fillRect(sx-e.face*17, sy-6, e.face*6, 2); }
+  }
+  else {
+    drawHench(e, sx, sy, flash, wind);
+    if(e.kind==='skold'){
+      // kravallsköld hålls framför
+      ctx.save(); ctx.translate(sx, sy); ctx.scale(e.face,1);
+      FR(9, -34, 8, 30, flash?'#ffffff':'#7a8a9a');
+      FR(10.5, -31, 5, 24, flash?'#eeeeee':'rgba(160,200,230,0.55)');
+      FR(9, -22, 8, 3, flash?'#ffffff':'#5a6a7a');
+      ctx.restore();
+    }
+    if(e.kind==='snabb' && e.state==='chase'){
+      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      ctx.fillRect(sx-e.face*16, sy-24, e.face*6, 2); ctx.fillRect(sx-e.face*19, sy-16, e.face*6, 2);
+    }
   }
   ctx.restore();
 }
@@ -1168,14 +1335,14 @@ function bgCastle(t){
 // ===================== SPELDATA =====================
 const YMIN = 344, YMAX = 516, GRAV = 1500, JUMPV = 430;
 const ETYPES = {
- grunt:  {hp:26, dmg:8,  speed:62,  color:'#5ac83c', dark:'#2a8a1c', pts:100},
- snabb:  {hp:18, dmg:6,  speed:125, color:'#e8503c', dark:'#8a2014', pts:150},
- kastare:{hp:22, dmg:7,  speed:58,  color:'#3a8ae8', dark:'#1a4a9a', pts:150, ranged:true},
- skold:  {hp:44, dmg:9,  speed:42,  color:'#8a929a', dark:'#4a525a', pts:200, shield:true},
- bomb:   {hp:14, dmg:16, speed:80,  color:'#3a3a44', dark:'#1a1a22', pts:150, bomber:true},
- flyg:   {hp:16, dmg:7,  speed:100, color:'#8a5ae0', dark:'#4a2a8a', pts:150, fly:true},
+ grunt:  {hp:26, dmg:8,  speed:62,  color:'#3a7a6a', dark:'#24544a', pts:100},
+ snabb:  {hp:18, dmg:6,  speed:125, color:'#c8483a', dark:'#7a241a', pts:150},
+ kastare:{hp:22, dmg:7,  speed:58,  color:'#4a4a6a', dark:'#2a2a44', pts:150, ranged:true},
+ skold:  {hp:44, dmg:9,  speed:42,  color:'#7a8a9a', dark:'#46525e', pts:200, shield:true},
+ bomb:   {hp:14, dmg:16, speed:80,  color:'#4a4a52', dark:'#26262e', pts:150, bomber:true},
+ flyg:   {hp:16, dmg:7,  speed:100, color:'#6a7282', dark:'#3e4650', pts:150, fly:true},
  robot:  {hp:36, dmg:9,  speed:48,  color:'#c8a83c', dark:'#7a621c', pts:250, laser:true},
- fet:    {hp:90, dmg:12, speed:40,  color:'#c05ae0', dark:'#6a2a8a', pts:500, big:true},
+ fet:    {hp:90, dmg:12, speed:40,  color:'#7a3a8a', dark:'#4a2054', pts:500, big:true},
 };
 const LEVELS = [
  {name:'GATAN', sub:'Slemligan invaderar stan!', bg:0, song:'lv1', len:3400, cont:'soptunna',
@@ -1668,7 +1835,7 @@ function updEnemy(e, dt){
       } else if(d.ranged){
         sfx('blob');
         const dx = t.x-e.x, fly = Math.abs(dx)/300;
-        projs.push({kind:'blob', x:e.x, y:e.y, z:30, vx:Math.sign(dx)*300, vy:(t.y-e.y)/Math.max(0.3,fly), vz:150, dmg:d.dmg, from:'e', t:0, hitIds:new Set()});
+        projs.push({kind:'blob', shu:e.kind==='kastare', x:e.x, y:e.y, z:30, vx:Math.sign(dx)*300, vy:(t.y-e.y)/Math.max(0.3,fly), vz:150, dmg:d.dmg, from:'e', t:0, hitIds:new Set()});
       } else if(e.fly){
         e.swoopVx = Math.sign(t.x-e.x)*300; e.swoopVy = (t.y-e.y)*2;
       }
@@ -2138,9 +2305,12 @@ function drawProjs(){
     const sx = pr.x-camX, sy = pr.y-(pr.z||0);
     if(pr.kind==='blob'){
       shadow(pr.x-camX, pr.y, 7);
-      ctx.fillStyle = pr.purple?'#8a5ae0':'#5ac83c';
-      ctx.beginPath(); ctx.arc(sx, sy-6, 8, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.beginPath(); ctx.arc(sx-2, sy-9, 2.5, 0, Math.PI*2); ctx.fill();
+      if(pr.shu){ drawShuriken(sx, sy-6, 9, false); }
+      else {
+        ctx.fillStyle = pr.purple?'#8a5ae0':'#5ac83c';
+        ctx.beginPath(); ctx.arc(sx, sy-6, 8, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.beginPath(); ctx.arc(sx-2, sy-9, 2.5, 0, Math.PI*2); ctx.fill();
+      }
     } else if(pr.kind==='fist'){
       ctx.fillStyle = '#ff9a2a';
       for(let i=1;i<4;i++){ ctx.globalAlpha = 0.5-i*0.12; ctx.fillRect(sx-Math.sign(pr.vx)*i*14-9, sy-8, 18, 16); }
