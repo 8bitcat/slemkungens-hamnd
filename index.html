@@ -93,7 +93,7 @@ function initAudio(){
   try{
     actx = new (window.AudioContext||window.webkitAudioContext)();
     sfxGain = actx.createGain(); sfxGain.gain.value = 0.5; sfxGain.connect(actx.destination);
-    musGain = actx.createGain(); musGain.gain.value = 0.3; musGain.connect(actx.destination);
+    musGain = actx.createGain(); musGain.gain.value = 0.35; musGain.connect(actx.destination);
     noiseBuf = actx.createBuffer(1, actx.sampleRate*0.1, actx.sampleRate);
     const nd = noiseBuf.getChannelData(0);
     for(let i=0;i<nd.length;i++) nd[i] = Math.random()*2-1;
@@ -207,21 +207,22 @@ function musNote(wave, midi, t, dur, vol, vib){
   o.start(t); o.stop(t + dur + 0.02);
 }
 const SONGS = {
-// Lobby — lekfull och hoppfull (C-dur)
-lobby: mkSong(0.115,
- `C5 - E5 G5 C6 - G5 - E5 - C5 - D5 - E5 -
-  F5 - A5 - C6 - A5 - G5 - E5 - C5 - . .
-  D5 - F5 - B4 - D5 - C5 - E5 - G5 - - -
-  A5 - G5 - E5 - D5 - C5 - - - . . . .`,
- `. . E4 . . . E4 . . . E4 . . . E4 .
-  . . F4 . . . F4 . . . E4 . . . E4 .
-  . . D4 . . . D4 . . . E4 . . . E4 .
-  . . F4 . . . D4 . . . E4 . . . . .`,
- `C3 . G2 . C3 . G2 . C3 . G2 . C3 . G2 .
-  F2 . C3 . F2 . C3 . C3 . G2 . C3 . G2 .
-  G2 . D3 . G2 . D3 . C3 . G2 . C3 . G2 .
-  F2 . C3 . G2 . G2 . C3 . G2 . C3 . C3 .`,
- `K.h.S.h.K.h.S.h. K.h.S.h.K.h.S.h. K.h.S.h.K.h.S.h. K.h.S.h.K.h.S.ss`),
+// Lobby — episkt titelskärms-anthem (A-moll, pumpande oktavbas, NES-actionstil)
+lobby: mkSong(0.09,
+ `A4 - C5 E5 A5 - G5 E5 F5 - E5 D5 E5 - - -
+  A4 - C5 E5 A5 - G5 E5 B5 - A5 G5 A5 - - -
+  F5 - A5 - C6 - B5 A5 G5 - B5 - E5 - G5 -
+  F5 G5 A5 - G5 F5 E5 D5 C5 - D5 - E5 - - -`,
+ `. . A3 . . . A3 . . . F3 . . . F3 .
+  . . A3 . . . A3 . . . G3 . . . G3 .
+  . . F3 . . . F3 . . . G3 . . . E4 .
+  . . F3 . . . G3 . . . A3 . . . E4 .`,
+ `A2 A3 A2 A3 A2 A3 A2 A3 F2 F3 F2 F3 F2 F3 F2 F3
+  A2 A3 A2 A3 A2 A3 A2 A3 G2 G3 G2 G3 G2 G3 G2 G3
+  F2 F3 F2 F3 F2 F3 F2 F3 G2 G3 G2 G3 E2 E3 E2 E3
+  F2 F3 F2 F3 G2 G3 G2 G3 A2 A3 A2 A3 A2 A3 A2 A3`,
+ `K.h.S.h.K.h.S.hh K.h.S.h.K.h.S.hh K.h.S.h.K.h.S.hh K.h.S.h.K.s.Ssss`,
+ [0.09, 0.05, 0.18], {echo:true}),
 // Bana 1: Gatan — gallopperande A-harmonisk moll med barockslingor (Castlevania-anda)
 lv1: mkSong(0.095,
  `A4 - - E5 - - D5 C5 B4 C5 D5 C5 B4 A4 G#4 -
@@ -238,21 +239,22 @@ lv1: mkSong(0.095,
   E2 . E2 E2 E2 . E2 E2 E2 . E2 E2 A2 . A2 A2`,
  `K.h.S.h.h.K.S.h. K.h.S.h.h.K.S.h. K.h.S.h.h.K.S.h. K.h.S.h.K.k.S.ss`,
  null, {echo:true}),
-// Bana 2: Kloakerna — mörk och slingrande (D-moll)
-lv2: mkSong(0.12,
- `D5 - - - F5 - E5 - D5 - - - A4 - - -
-  Bb4 - - - D5 - C5 - A4 - - - . . . .
-  D5 - - - F5 - G5 - A5 - - - G5 - F5 -
-  E5 - C5 - A4 - - - D5 - - - . . . .`,
+// Bana 2: Kloakerna — mörk drivande D-harmonisk moll (C#-ledton)
+lv2: mkSong(0.11,
+ `D5 - - F5 E5 - D5 - C#5 - D5 - A4 - - -
+  Bb4 - - D5 C5 - Bb4 - A4 - - - F4 - A4 -
+  D5 - F5 - G5 - A5 - Bb5 - A5 G5 F5 - E5 -
+  G5 F5 E5 - F5 E5 D5 - C#5 - E5 - D5 - - -`,
  `D3 - - - - - - - A3 - - - - - - -
   Bb2 - - - - - - - F3 - - - - - - -
-  D3 - - - - - - - Bb2 - - - - - - -
-  C3 - - - - - - - A2 - - - - - - -`,
- `D2 . . D2 . . D2 . D2 . . D2 . . A2 .
-  Bb2 . . Bb2 . . Bb2 . Bb2 . . Bb2 . . F2 .
-  D2 . . D2 . . D2 . Bb2 . . Bb2 . . Bb2 .
-  C2 . . C2 . . C2 . A2 . . A2 . A2 . A2`,
- `K...h.S...h.K.h. K...h.S...h.K.h. K...h.S...h.K.h. K...h.S...s.s.s.`),
+  D3 - - - - - - - G3 - - - - - - -
+  G3 - - - - - - - A3 - C#4 - D4 - - -`,
+ `D2 . D2 D2 D2 . D2 D2 D2 . D2 D2 A2 . A2 A2
+  Bb2 . Bb2 Bb2 Bb2 . Bb2 Bb2 F2 . F2 F2 F2 . F2 F2
+  D2 . D2 D2 D2 . D2 D2 G2 . G2 G2 G2 . G2 G2
+  G2 . G2 G2 A2 . A2 A2 A2 . A2 A2 D2 . D2 D2`,
+ `K..hS..hK.h.S..h K..hS..hK.h.S..h K..hS..hK.h.S..h K..hS..hK.s.S.ss`,
+ null, {echo:true}),
 // Bana 3: Fabriken — pumpande oktavbas + synkoperad hook (Mega Man-driv, E-moll)
 lv3: mkSong(0.088,
  `E5 - G5 E5 B4 - E5 - D5 E5 G5 A5 B5 - A5 G5
@@ -269,21 +271,22 @@ lv3: mkSong(0.088,
   C2 C3 C2 C3 D2 D3 D2 D3 E2 E3 E2 E3 B2 B2 B2 B2`,
  `K.h.S.hhK.h.S.h. K.h.S.hhK.h.S.h. K.h.S.hhK.h.S.h. K.h.S.h.K.s.Ssss`,
  null, {echo:true}),
-// Bana 4: Taken — hjältemodigt äventyr (G-dur, Zelda-anda)
-lv4: mkSong(0.105,
- `G4 - B4 D5 G5 - - F#5 E5 - D5 - B4 - - -
-  C5 - E5 - A5 - - G5 F#5 - E5 - D5 - - -
-  B4 - D5 G5 B5 - - A5 G5 - F#5 - E5 - D5 -
-  C5 - D5 - E5 - F#5 - G5 - - - - - . .`,
- `G3 - - - - - - - D4 - - - - - - -
-  C4 - - - - - - - A3 - - - - - - -
-  G3 - - - - - - - E3 - - - - - - -
-  C4 - - - D4 - - - G3 - - - - - - -`,
- `G2 . D3 . G2 . D3 . G2 . D3 . G2 . D3 .
-  C3 . G2 . C3 . G2 . A2 . E3 . A2 . E3 .
-  G2 . D3 . G2 . D3 . E2 . B2 . E2 . B2 .
-  C3 . C3 . D3 . D3 . G2 . D3 . G2 . G2 .`,
- `K.h.K.h.S.h.K.h. K.h.K.h.S.h.K.h. K.h.K.h.S.h.K.h. K.h.K.h.S.h.S.ss`),
+// Bana 4: Taken — hjältemodigt driv i G-dur (oktavpump + hook)
+lv4: mkSong(0.098,
+ `D5 - G5 - B5 - A5 G5 F#5 - G5 - E5 - D5 -
+  C5 - E5 - A5 - G5 F#5 E5 - F#5 - D5 - - -
+  B4 - D5 G5 B5 - A5 - G5 - F#5 E5 D5 - E5 -
+  C5 D5 E5 F#5 G5 - A5 - B5 - - - D5 - - -`,
+ `. . G3 . . . G3 . . . D4 . . . D4 .
+  . . C4 . . . C4 . . . D4 . . . D4 .
+  . . G3 . . . G3 . . . E4 . . . E4 .
+  . . C4 . . . D4 . . . G3 . . . G3 .`,
+ `G2 G3 G2 G3 G2 G3 G2 G3 D2 D3 D2 D3 D2 D3 D2 D3
+  C2 C3 C2 C3 C2 C3 C2 C3 D2 D3 D2 D3 D2 D3 D2 D3
+  G2 G3 G2 G3 G2 G3 G2 G3 E2 E3 E2 E3 E2 E3 E2 E3
+  C2 C3 C2 C3 D2 D3 D2 D3 G2 G3 G2 G3 G2 G3 G2 G3`,
+ `K.h.S.h.K.hkS.h. K.h.S.h.K.hkS.h. K.h.S.h.K.hkS.h. K.h.S.h.K.s.S.ss`,
+ null, {echo:true}),
 // Bana 5: Slottet — barock orgelkänsla i E-harmonisk moll (Castlevania-stämning)
 lv5: mkSong(0.105,
  `E5 - - - G5 F#5 G5 - E5 - - - B4 - D#5 -
